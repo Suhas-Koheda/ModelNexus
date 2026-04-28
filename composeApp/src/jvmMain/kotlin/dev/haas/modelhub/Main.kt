@@ -62,15 +62,6 @@ fun main() = application {
             alwaysOnTop = true,
             focusable = true
         ) {
-            // Close on focus lost to behave like a tray popup
-            LaunchedEffect(window) {
-                window.addWindowFocusListener(object : java.awt.event.WindowFocusListener {
-                    override fun windowGainedFocus(e: java.awt.event.WindowEvent?) {}
-                    override fun windowLostFocus(e: java.awt.event.WindowEvent?) {
-                        isVisible = false
-                    }
-                })
-            }
             App()
         }
     }
