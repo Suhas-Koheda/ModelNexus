@@ -8,8 +8,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Hub
 import dev.haas.modelhub.ui.App
 
-fun main() = application {
-    var isVisible by remember { mutableStateOf(true) }
+import dev.haas.modelhub.ui.App
+import java.io.File
+import java.io.PrintStream
+import java.io.FileOutputStream
+
+fun main() {
+    setupLogging()
+    application {
+        val isVisible = remember { mutableStateOf(false) }
     
     val trayState = rememberTrayState()
     val windowState = rememberWindowState(
@@ -42,8 +49,7 @@ fun main() = application {
             focusable = true
         ) {
             // Close on focus lost to behave like a tray popup
-            LaunchedEffect(Unit) {
-                window.type = java.awt.Window.Type.UTILITY
+            LaunchedEffect(window) {
                 window.addWindowFocusListener(object : java.awt.event.WindowFocusListener {
                     override fun windowGainedFocus(e: java.awt.event.WindowEvent?) {}
                     override fun windowLostFocus(e: java.awt.event.WindowEvent?) {
