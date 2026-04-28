@@ -53,6 +53,7 @@ compose.desktop {
                 shortcut = true
                 menuGroup = "Development"
                 appCategory = "Development"
+                iconFile.set(project.file("src/jvmMain/resources/icon.png"))
             }
         }
     }

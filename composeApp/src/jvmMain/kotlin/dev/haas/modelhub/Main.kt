@@ -5,7 +5,8 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.window.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Hub
+import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.Folder
 import dev.haas.modelhub.ui.App
 import java.io.File
 import java.io.PrintStream
@@ -40,14 +41,17 @@ fun main() = application {
     }
 
     Tray(
-        icon = rememberVectorPainter(Icons.Default.Hub),
+        icon = rememberVectorPainter(Icons.Default.Inventory),
         state = trayState,
         tooltip = "ModelNexus",
         onAction = { isVisible = !isVisible },
         menu = {
-            Item("Toggle Widget", onClick = { isVisible = !isVisible })
+            Item("Show Hub", onClick = { isVisible = true })
+            Item("Hide Hub", onClick = { isVisible = false })
             Separator()
-            Item("Exit", onClick = { exitApplication() })
+            Item("Scan for Models", onClick = { /* Force re-scan logic if needed */ })
+            Separator()
+            Item("Quit ModelNexus", onClick = { exitApplication() })
         }
     )
 
