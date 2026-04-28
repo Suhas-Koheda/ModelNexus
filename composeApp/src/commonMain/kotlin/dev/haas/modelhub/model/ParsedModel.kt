@@ -11,6 +11,8 @@ data class ParsedModel(
     val fullPath: String,
     val source: Source
 ) {
+    val repoID: String get() = if (publisher.isEmpty()) repo else "$publisher/$repo"
+
     enum class Source {
         LM_STUDIO,
         HUGGING_FACE,

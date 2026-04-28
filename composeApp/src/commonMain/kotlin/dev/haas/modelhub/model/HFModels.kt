@@ -5,13 +5,22 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class HFModelSummary(
     val id: String,
-    val author: String? = null,
-    val lastModified: String? = null,
-    val downloads: Int = 0,
+    val downloads: Int? = null,
+    val likes: Int? = null,
+    val tags: List<String>? = null,
     val pipeline_tag: String? = null,
-    val tags: List<String> = emptyList(),
-    val siblings: List<HFSibling> = emptyList()
-)
+    val library_name: String? = null
+) {
+    val publisher: String get() {
+        val slash = id.indexOf("/")
+        return if (slash == -1) "" else id.substring(0, slash)
+    }
+    
+    val repo: String get() {
+        val slash = id.indexOf("/")
+        return if (slash == -1) id else id.substring(slash + 1)
+    }
+}
 
 @Serializable
 data class HFSibling(
@@ -22,5 +31,6 @@ data class HFSibling(
 data class HFModelDetail(
     val id: String,
     val sha: String? = null,
-    val siblings: List<HFSibling>? = null
+    val siblings: List<HFSibling>? = null,
+    val usedStorage: Long? = null
 )

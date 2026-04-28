@@ -1,14 +1,13 @@
 package dev.haas.modelhub.service
 
+import dev.haas.modelhub.model.ModelPaths
 import dev.haas.modelhub.model.ParsedModel
 import java.io.File
 
 object ModelScanner {
-    private val userHome = System.getProperty("user.home")
-    
-    val lmStudioRoot = File(userHome, ".lmstudio/models")
-    val huggingFaceRoot = File(userHome, ".cache/huggingface/hub")
-    val ollamaRoot = File(userHome, ".ollama/models/manifests/registry.ollama.ai/library")
+    val lmStudioRoot = ModelPaths.lmStudioRoot
+    val huggingFaceRoot = ModelPaths.huggingFaceRoot
+    val ollamaRoot = ModelPaths.ollamaRoot
 
     fun scanAll(customPaths: List<String> = emptyList()): List<ParsedModel> {
         val out = mutableListOf<ParsedModel>()
@@ -119,7 +118,7 @@ object ModelScanner {
         val out = mutableListOf<ParsedModel>()
         
         paths.forEach { folderName ->
-            val folder = File(userHome, folderName)
+            val folder = File(ModelPaths.userHome, folderName)
             if (folder.exists() && folder.isDirectory) {
                 folder.walkTopDown().maxDepth(2).forEach { file ->
                     val ext = file.extension.lowercase()

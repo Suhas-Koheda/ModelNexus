@@ -21,6 +21,12 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(compose.materialIconsExtended)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.cio)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.json)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -37,10 +43,17 @@ compose.desktop {
         mainClass = "dev.haas.modelhub.MainKt"
 
         nativeDistributions {
-            // Target Windows (Msi) and Linux (Deb) only, per user request.
-            targetFormats(TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "dev.haas.modelhub"
+            targetFormats(TargetFormat.Deb)
+            packageName = "modelnexus"
             packageVersion = "1.0.0"
+            vendor = "Suhas Koheda"
+            description = "ModelNexus AI Model Manager"
+            
+            linux {
+                shortcut = true
+                menuGroup = "Development"
+                appCategory = "Development"
+            }
         }
     }
 }
