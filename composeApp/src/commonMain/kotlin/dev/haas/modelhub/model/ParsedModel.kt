@@ -9,7 +9,8 @@ data class ParsedModel(
     val displayName: String,
     val typeLabel: String?,
     val fullPath: String,
-    val source: Source
+    val source: Source,
+    val sizeBytes: Long = 0L
 ) {
     val repoID: String get() = if (publisher.isEmpty()) repo else "$publisher/$repo"
 

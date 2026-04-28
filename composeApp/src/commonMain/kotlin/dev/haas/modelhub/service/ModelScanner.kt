@@ -29,12 +29,14 @@ object ModelScanner {
         folder.walkTopDown().maxDepth(3).forEach { file ->
             val ext = file.extension.lowercase()
             if (ext == "gguf" || ext == "safetensors" || ext == "task") {
+                val size = if (file.isFile) file.length() else ModelParser.calculateFolderSize(file)
                 out.add(
                     ModelParser.parse(
                         publisher = if (folder.name == "models") folder.parentFile?.name ?: "local" else "local",
                         repo = file.name,
                         path = file.absolutePath,
-                        source = source
+                        source = source,
+                        sizeBytes = size
                     )
                 )
             }
@@ -48,12 +50,14 @@ object ModelScanner {
         val out = mutableListOf<ParsedModel>()
         lmStudioRoot.listFiles()?.filter { it.isDirectory && !it.name.startsWith(".") }?.forEach { pubDir ->
             pubDir.listFiles()?.filter { it.isDirectory && !it.name.startsWith(".") }?.forEach { repoDir ->
+                val size = ModelParser.calculateFolderSize(repoDir)
                 out.add(
                     ModelParser.parse(
                         publisher = pubDir.name,
                         repo = repoDir.name,
                         path = repoDir.absolutePath,
-                        source = ParsedModel.Source.LM_STUDIO
+                        source = ParsedModel.Source.LM_STUDIO,
+                        sizeBytes = size
                     )
                 )
             }
@@ -70,12 +74,14 @@ object ModelScanner {
             if (parts.size >= 3) {
                 val publisher = parts[1]
                 val repo = parts.drop(2).joinToString("--")
+                val size = ModelParser.calculateFolderSize(repoDir)
                 out.add(
                     ModelParser.parse(
                         publisher = publisher,
                         repo = repo,
                         path = repoDir.absolutePath,
-                        source = ParsedModel.Source.HUGGING_FACE
+                        source = ParsedModel.Source.HUGGING_FACE,
+                        sizeBytes = size
                     )
                 )
             }
@@ -90,12 +96,14 @@ object ModelScanner {
         ollamaRoot.listFiles()?.filter { it.isDirectory || it.isFile }?.forEach { modelEntry ->
             if (modelEntry.isDirectory) {
                 modelEntry.listFiles()?.forEach { tagFile ->
+                    val size = if (tagFile.isFile) tagFile.length() else ModelParser.calculateFolderSize(tagFile)
                     out.add(
                         ModelParser.parse(
                             publisher = "ollama",
                             repo = "${modelEntry.name}:${tagFile.name}",
                             path = tagFile.absolutePath,
-                            source = ParsedModel.Source.OLLAMA
+                            source = ParsedModel.Source.OLLAMA,
+                            sizeBytes = size
                         )
                     )
                 }
@@ -105,7 +113,8 @@ object ModelScanner {
                         publisher = "ollama",
                         repo = modelEntry.name,
                         path = modelEntry.absolutePath,
-                        source = ParsedModel.Source.OLLAMA
+                        source = ParsedModel.Source.OLLAMA,
+                        sizeBytes = modelEntry.length()
                     )
                 )
             }
@@ -123,12 +132,14 @@ object ModelScanner {
                 folder.walkTopDown().maxDepth(2).forEach { file ->
                     val ext = file.extension.lowercase()
                     if (ext == "gguf" || ext == "safetensors" || ext == "task") {
+                        val size = if (file.isFile) file.length() else ModelParser.calculateFolderSize(file)
                         out.add(
                             ModelParser.parse(
                                 publisher = "local",
                                 repo = file.name,
                                 path = file.absolutePath,
-                                source = ParsedModel.Source.LOCAL
+                                source = ParsedModel.Source.LOCAL,
+                                sizeBytes = size
                             )
                         )
                     }

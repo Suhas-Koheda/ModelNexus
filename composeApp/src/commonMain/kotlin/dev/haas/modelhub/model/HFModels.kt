@@ -9,7 +9,8 @@ data class HFModelSummary(
     val likes: Int? = null,
     val tags: List<String>? = null,
     val pipeline_tag: String? = null,
-    val library_name: String? = null
+    val library_name: String? = null,
+    val usedStorage: Long? = null
 ) {
     val publisher: String get() {
         val slash = id.indexOf("/")
@@ -24,7 +25,8 @@ data class HFModelSummary(
 
 @Serializable
 data class HFSibling(
-    val rfilename: String
+    val rfilename: String,
+    val size: Long? = null
 )
 
 @Serializable

@@ -9,7 +9,8 @@ object ModelParser {
         repo: String,
         path: String,
         source: ParsedModel.Source,
-        tags: List<String>? = null
+        tags: List<String>? = null,
+        sizeBytes: Long = 0L
     ): ParsedModel {
         var format = detectFormatFromName(publisher, repo)
 
@@ -58,8 +59,19 @@ object ModelParser {
             displayName = displayName,
             typeLabel = typeLabel,
             fullPath = path,
-            source = source
+            source = source,
+            sizeBytes = sizeBytes
         )
+    }
+
+    fun calculateFolderSize(folder: File): Long {
+        if (!folder.exists()) return 0L
+        if (folder.isFile) return folder.length()
+        var total = 0L
+        folder.walkTopDown().forEach { file ->
+            if (file.isFile) total += file.length()
+        }
+        return total
     }
 
     private fun extractFamilyTag(token: String): String {

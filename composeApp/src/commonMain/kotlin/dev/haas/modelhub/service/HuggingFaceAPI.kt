@@ -33,12 +33,14 @@ object HuggingFaceAPI {
                 ModelParser.parse(
                     publisher = summary.publisher,
                     repo = summary.repo,
-                    path = "", // Remote model
+                    path = "", 
                     source = ParsedModel.Source.HUGGING_FACE,
-                    tags = summary.tags
+                    tags = summary.tags,
+                    sizeBytes = summary.usedStorage ?: 0L
                 )
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            if (e::class.simpleName?.contains("Cancellation") == true) throw e
             e.printStackTrace()
             emptyList()
         }

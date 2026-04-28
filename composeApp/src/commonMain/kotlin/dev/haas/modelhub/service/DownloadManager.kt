@@ -33,13 +33,12 @@ object DownloadManager {
         val active = _downloads.value[repoID]
         if (active != null) return active.state
         
-        // Check if already downloaded
         if (HFCacheWriter.isDownloaded(repoID)) return DownloadState.Completed
         
         return DownloadState.NotStarted
     }
 
-    fun startDownload(repoID: String, estimatedTotalBytes: Long) {
+    fun startDownload(repoID: String, estimatedTotalBytes: Long = 0L) {
         if (getDownloadState(repoID) == DownloadState.Completed) return
         if (_downloads.value.containsKey(repoID)) return
 
@@ -49,7 +48,8 @@ object DownloadManager {
         download.job = scope.launch {
             try {
                 prepareAndStart(download)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
+                if (e::class.simpleName?.contains("Cancellation") == true) throw e
                 e.printStackTrace()
                 updateState(download, DownloadState.Failed(e.message ?: "Unknown error"))
             }
@@ -70,6 +70,11 @@ object DownloadManager {
         download.sha = sha
         download.files = siblings.map { DownloadFile(it.rfilename) }
         
+        val actualTotalBytes = siblings.sumOf { it.size ?: 0L }
+        if (actualTotalBytes > 0) {
+            download.totalBytes = actualTotalBytes
+        }
+        
         HFCacheWriter.prepareDirectories(download.repoID, sha)
         
         updateState(download, DownloadState.Downloading(0.0, 0, download.totalBytes, 0.0))
@@ -87,9 +92,7 @@ object DownloadManager {
         val sha = download.sha!!
         val url = HuggingFaceAPI.resolveURL(download.repoID, sha, file.filename)
         
-        val response = client.get(url) {
-            // Handle redirects if necessary, CIO handles them by default
-        }
+        val response = client.get(url)
 
         if (response.status.value !in 200..299) {
             throw Exception("HTTP ${response.status.value}")
