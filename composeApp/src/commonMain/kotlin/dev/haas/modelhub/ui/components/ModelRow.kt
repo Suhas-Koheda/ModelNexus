@@ -26,7 +26,8 @@ import dev.haas.modelhub.service.DownloadManager
 @Composable
 fun ModelRow(
     model: ParsedModel,
-    onAction: () -> Unit
+    onAction: () -> Unit,
+    onDelete: (() -> Unit)? = null
 ) {
     val downloadState by DownloadManager.downloads.collectAsState()
     val currentDownload = downloadState[model.repoID]
@@ -34,63 +35,53 @@ fun ModelRow(
     val clipboardManager = LocalClipboardManager.current
     var showMenu by remember { mutableStateOf(false) }
 
+    val isLight = !MaterialTheme.colorScheme.surface.isDark()
+    val textColor = if (isLight) Color(0xFF1E1E1E) else Color.White
+    val subTextColor = if (isLight) Color(0xFF8E8E93) else Color(0xFFA1A1A6)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { showMenu = true }
-            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Minimal Icon
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(if (model.source == ParsedModel.Source.LOCAL) Color(0x22FFFFFF) else Color(0x44007AFF)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    if (model.source == ParsedModel.Source.LOCAL) Icons.Default.Folder else Icons.Default.Cloud,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = Color.White
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = model.displayName,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 14.sp
+                    ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = Color.White
-                )
-                Text(
-                    text = "${model.publisher} • ${model.typeLabel ?: "Model"}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = textColor
                 )
                 
                 if (state is DownloadState.Downloading) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
                         LinearProgressIndicator(
-                            progress = state.progress.toFloat(),
+                            progress = { state.progress.toFloat() },
                             modifier = Modifier.weight(1f).height(2.dp).clip(RoundedCornerShape(1.dp)),
                             color = MaterialTheme.colorScheme.primary,
-                            trackColor = Color(0x33FFFFFF)
+                            trackColor = if (isLight) Color(0x1A000000) else Color(0x33FFFFFF)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             "${(state.progress * 100).toInt()}%",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
+                } else {
+                    Text(
+                        text = "${model.publisher} • ${model.typeLabel ?: "Model"}",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                        color = subTextColor
+                    )
                 }
             }
 
@@ -101,24 +92,19 @@ fun ModelRow(
                         onClick = { DownloadManager.stopDownload(model.repoID) },
                         modifier = Modifier.size(24.dp)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Cancel", modifier = Modifier.size(16.dp), tint = Color.Red)
-                    }
-                } else {
-                    IconButton(
-                        onClick = { showMenu = true },
-                        modifier = Modifier.size(24.dp)
-                    ) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Menu", modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Close, contentDescription = "Cancel", modifier = Modifier.size(14.dp), tint = Color.Red)
                     }
                 }
 
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
-                    modifier = Modifier.background(Color(0xFF2C2C2E)).border(0.5.dp, Color(0x33FFFFFF), RoundedCornerShape(8.dp))
+                    modifier = Modifier
+                        .background(if (isLight) Color(0xFFF2F2F7) else Color(0xFF2C2C2E))
+                        .border(0.5.dp, if (isLight) Color(0x1A000000) else Color(0x33FFFFFF), RoundedCornerShape(8.dp))
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Copy Absolute Path", fontSize = 12.sp) },
+                        text = { Text("Copy Path", fontSize = 12.sp) },
                         onClick = {
                             clipboardManager.setText(AnnotatedString(model.fullPath))
                             showMenu = false
@@ -131,22 +117,43 @@ fun ModelRow(
                             showMenu = false
                         }
                     )
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = Color(0x1AFFFFFF))
+                    
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 4.dp),
+                        color = if (isLight) Color(0x1A000000) else Color(0x1AFFFFFF)
+                    )
+
+                    val actionText = when {
+                        state is DownloadState.Downloading -> "Cancel Download"
+                        state is DownloadState.Completed || model.source == ParsedModel.Source.LOCAL -> "Open Folder"
+                        else -> "Download Model"
+                    }
+                    
                     DropdownMenuItem(
-                        text = { 
-                            Text(
-                                if (state is DownloadState.Completed || model.source == ParsedModel.Source.LOCAL) "Open" else "Download",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.primary
-                            ) 
-                        },
+                        text = { Text(actionText, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary) },
                         onClick = {
-                            onAction()
+                            if (state is DownloadState.Downloading) DownloadManager.stopDownload(model.repoID)
+                            else onAction()
                             showMenu = false
                         }
                     )
+
+                    if (model.source == ParsedModel.Source.LOCAL && onDelete != null) {
+                        DropdownMenuItem(
+                            text = { Text("Delete Local Files", fontSize = 12.sp, color = Color.Red) },
+                            onClick = {
+                                onDelete()
+                                showMenu = false
+                            }
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+private fun Color.isDark(): Boolean {
+    val luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+    return luminance < 0.5
 }

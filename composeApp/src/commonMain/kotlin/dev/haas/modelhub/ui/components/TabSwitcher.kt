@@ -22,10 +22,10 @@ fun TabSwitcher(
 ) {
     Row(
         modifier = Modifier
-            .padding(12.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0x1AFFFFFF))
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color(0x0A000000))
             .padding(2.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
@@ -34,19 +34,19 @@ fun TabSwitcher(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(if (isSelected) Color(0x33FFFFFF) else Color.Transparent)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(if (isSelected) Color.White else Color.Transparent)
                     .clickable { onTabSelected(tab) }
-                    .padding(vertical = 6.dp),
+                    .padding(vertical = 4.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = tab.name.lowercase().replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        fontSize = 13.sp
+                        fontSize = 12.sp
                     ),
-                    color = if (isSelected) Color.White else Color(0xFFA1A1A6)
+                    color = if (isSelected) Color(0xFF1E1E1E) else Color(0xFF8E8E93)
                 )
             }
         }
